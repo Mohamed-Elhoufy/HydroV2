@@ -1,0 +1,2399 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Hydraulic Measurements</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Tahoma, sans-serif;
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 26px;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: bold;
+    }
+
+    select,
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      margin-bottom: 15px;
+      background: white;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 15px;
+      cursor: pointer;
+      margin: 5px 0;
+    }
+
+    .primary {
+      background: #1976d2;
+      color: white;
+    }
+
+    .success {
+      background: #2e7d32;
+      color: white;
+    }
+
+    .secondary {
+      background: #607d8b;
+      color: white;
+    }
+
+    .danger {
+      background: #c62828;
+      color: white;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .location-list {
+      max-height: 250px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 5px;
+    }
+
+    .location-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+
+    .location-item:last-child {
+      border-bottom: none;
+    }
+
+    .location-item:hover {
+      background: #f1f5f9;
+    }
+
+    .info {
+      background: #eef6ff;
+      border-right: 4px solid #1976d2;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+
+    .warning {
+      background: #fff8e1;
+      border-right: 4px solid #f9a825;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+
+    .success-box {
+      background: #e8f5e9;
+      border-right: 4px solid #2e7d32;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+
+    .error {
+      background: #ffebee;
+      border-right: 4px solid #c62828;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+
+    .coordinates {
+      direction: ltr;
+      text-align: left;
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 9999;
+    }
+
+    .modal {
+      background: white;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .modal h2 {
+      margin-top: 0;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .modal-actions button {
+      flex: 1;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #666;
+    }
+
+    @media (max-width: 700px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        margin: 10px auto;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="card">
+    <h1>Hydraulic Measurements</h1>
+
+    <div class="info">
+      اختر البحث أولاً، ثم حدد موقع القياس، وبعد ذلك اختر نوع القياس.
+    </div>
+
+    <label for="researchSelect">البحث</label>
+
+    <select id="researchSelect">
+      <option value="">جاري تحميل الأبحاث...</option>
+    </select>
+
+    <div id="researchInfo" class="small"></div>
+  </div>
+
+
+  <div class="card">
+
+    <h2>الموقع</h2>
+
+    <label for="savedLocationSelect">المواقع المحفوظة</label>
+
+    <select id="savedLocationSelect">
+      <option value="">اختر موقعًا محفوظًا</option>
+    </select>
+
+    <div id="selectedLocationInfo"></div>
+
+    <hr>
+
+    <h3>أو استخدم موقع GPS الحالي</h3>
+
+    <button
+      id="gpsButton"
+      class="secondary"
+      type="button"
+      onclick="getCurrentGPS()">
+      استخدام موقعي الحالي
+    </button>
+
+    <div id="gpsStatus"></div>
+
+    <div id="gpsCoordinates" class="coordinates hidden">
+      <div>
+        Longitude:
+        <span id="gpsLong"></span>
+      </div>
+
+      <div>
+        Latitude:
+        <span id="gpsLat"></span>
+      </div>
+
+      <div>
+        Accuracy:
+        <span id="gpsAccuracy"></span>
+        m
+      </div>
+    </div>
+
+    <hr>
+
+    <h3>أو أدخل رابط Google Maps</h3>
+
+    <input
+      type="text"
+      id="mapsLinkInput"
+      placeholder="الصق رابط Google Maps هنا">
+
+    <button
+      type="button"
+      class="secondary"
+      onclick="useMapsLink()">
+      استخراج الموقع من الرابط
+    </button>
+
+    <div id="mapsStatus"></div>
+
+    <hr>
+
+    <h3>حفظ موقع جديد</h3>
+
+    <label for="locationNameInput">اسم الموقع</label>
+
+    <input
+      type="text"
+      id="locationNameInput"
+      placeholder="مثال: خط دمنهور - أبو حمص">
+
+    <button
+      type="button"
+      class="success"
+      onclick="saveCurrentLocation()">
+      حفظ الموقع
+    </button>
+
+    <div id="saveLocationStatus"></div>
+
+  </div>
+
+
+  <div class="card">
+
+    <h2>نوع القياس</h2>
+
+    <div class="row">
+
+      <button
+        type="button"
+        class="primary"
+        onclick="openPressureForm()">
+        قياس ضغط
+      </button>
+
+      <button
+        type="button"
+        class="primary"
+        onclick="openFlowForm()">
+        قياس تصرف
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- Confirmation Modal -->
+
+<div id="confirmationModal" class="modal-overlay hidden">
+
+  <div class="modal">
+
+    <h2>تأكيد بيانات القياس</h2>
+
+    <div id="confirmationContent"></div>
+
+    <div class="modal-actions">
+
+      <button
+        type="button"
+        class="success"
+        onclick="confirmOpenForm()">
+        فتح الفورم
+      </button>
+
+      <button
+        type="button"
+        class="danger"
+        onclick="closeConfirmation()">
+        إلغاء
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   CONFIGURATION
+   ========================================================= */
+
+const CONFIG = {
+
+  /* ---------- Google Sheets CSV ---------- */
+
+  RESEARCH_CSV_URL:
+    'https://docs.google.com/spreadsheets/d/1b3sj2hmu7JzxqxVUU_-Exm82hYughBmt9XR6R8Xf7tY/gviz/tq?tqx=out:csv&sheet=Researchs',
+
+  LOCATIONS_CSV_URL:
+    'https://docs.google.com/spreadsheets/d/1b3sj2hmu7JzxqxVUU_-Exm82hYughBmt9XR6R8Xf7tY/gviz/tq?tqx=out:csv&sheet=Locations',
+
+
+  /* ---------- Apps Script Web App ---------- */
+
+  LOCATION_WRITE_API_URL:
+    'https://script.google.com/macros/s/AKfycbwWizIldA8iqoqoRZW3XPKh9Ez_LzgCeXQLhohsFApEvlQSBlv7vnGA9yEh1MKfbr2D/exec',
+
+
+  /* ---------- Pressure Form ---------- */
+
+  PRESSURE_FORM_URL:
+    'https://docs.google.com/forms/d/e/1FAIpQLScerKzhZhXns4WmO8ccPfbRXo0gaTYq7TVIgZphTEmnj_J8jw/viewform',
+
+  PRESSURE_FIELDS: {
+
+    researchId:
+      'entry.1226161002',
+
+    researchName:
+      'entry.600018316',
+
+    locationId:
+      'entry.689359020',
+
+    locationName:
+      'entry.482579463',
+
+    locationLink:
+      'entry.1056624396',
+
+    longX:
+      'entry.1987306767',
+
+    latY:
+      'entry.1260809960'
+  },
+
+
+  /* ---------- Flow Form ---------- */
+
+  FLOW_FORM_URL:
+    'https://docs.google.com/forms/d/e/1FAIpQLScxQt60ajiKi0BD0VUyxnNi26mmFrTOdqZP9qsKNQIdWSFkGA/viewform',
+
+  FLOW_FIELDS: {
+
+    researchId:
+      'entry.343098826',
+
+    researchName:
+      'entry.651076315',
+
+    locationId:
+      'entry.533052527',
+
+    locationName:
+      'entry.1012706378',
+
+    locationLink:
+      'entry.250696972',
+
+    longX:
+      'entry.480049395',
+
+    latY:
+      'entry.462372469'
+  },
+
+
+  /* ---------- locations Sheet ---------- */
+
+  LOC_COLS: {
+
+    id:
+      'Location_ID',
+
+    name:
+      'Location_Name',
+
+    diameter:
+      'D',
+
+    material:
+      'Mat',
+
+    lng:
+      'Long_X',
+
+    lat:
+      'Lat_Y',
+
+    mapsLink:
+      'Location_Link',
+
+    pipeId:
+      'Pipe_ID',
+
+    visible:
+      'Visible'
+  },
+
+
+  /* ---------- Researchs Sheet ---------- */
+
+  RES_COLS: {
+
+    id:
+      'Research_ID',
+
+    name:
+      'Research_Name',
+
+    status:
+      'Research_Status'
+  },
+
+
+  /* ---------- Research Filter ---------- */
+
+  ACTIVE_RESEARCH_STATUS:
+    'قيد الدراسة',
+
+
+  /* ---------- Location Visibility ---------- */
+
+  VISIBLE_VALUES:
+    [
+      'true',
+      'yes',
+      '1'
+    ],
+
+
+  /* ---------- Duplicate Distance ---------- */
+
+  DUPLICATE_TOLERANCE_METERS:
+    10,
+
+
+  /* ---------- GPS ---------- */
+
+  GPS_TIMEOUT_MS:
+    15000,
+
+  GPS_MAX_AGE_MS:
+    0,
+
+  GPS_ACCURACY_WARN:
+    20,
+
+
+  /* ---------- Free Measurement ---------- */
+
+  FREE_MEASUREMENT_LABEL:
+    'قياس حر / بدون بحث'
+};
+
+
+/* =========================================================
+   GLOBAL STATE
+   ========================================================= */
+
+let researches = [];
+
+let locations = [];
+
+let selectedResearch = null;
+
+let selectedLocation = null;
+
+let currentGPS = null;
+
+let currentMapsLocation = null;
+
+let pendingFormUrl = null;
+
+
+/* =========================================================
+   INITIALIZATION
+   ========================================================= */
+
+document.addEventListener(
+  'DOMContentLoaded',
+  initialize
+);
+
+
+async function initialize() {
+
+  try {
+
+    await Promise.all([
+      loadResearches(),
+      loadLocations()
+    ]);
+
+  } catch (error) {
+
+    console.error(error);
+
+    showMessage(
+      'researchInfo',
+      'حدث خطأ أثناء تحميل البيانات.',
+      'error'
+    );
+  }
+}
+
+
+/* =========================================================
+   CSV PARSER
+   ========================================================= */
+
+function parseCSV(text) {
+
+  const rows = [];
+
+  let row = [];
+
+  let cell = '';
+
+  let insideQuotes = false;
+
+
+  for (let i = 0; i < text.length; i++) {
+
+    const char = text[i];
+
+    const next = text[i + 1];
+
+
+    if (char === '"' && insideQuotes && next === '"') {
+
+      cell += '"';
+
+      i++;
+
+      continue;
+    }
+
+
+    if (char === '"') {
+
+      insideQuotes = !insideQuotes;
+
+      continue;
+    }
+
+
+    if (char === ',' && !insideQuotes) {
+
+      row.push(cell);
+
+      cell = '';
+
+      continue;
+    }
+
+
+    if (
+      (char === '\n' || char === '\r') &&
+      !insideQuotes
+    ) {
+
+      if (char === '\r' && next === '\n') {
+        i++;
+      }
+
+      row.push(cell);
+
+      rows.push(row);
+
+      row = [];
+
+      cell = '';
+
+      continue;
+    }
+
+
+    cell += char;
+  }
+
+
+  if (cell !== '' || row.length > 0) {
+
+    row.push(cell);
+
+    rows.push(row);
+  }
+
+
+  if (!rows.length) {
+    return [];
+  }
+
+
+  const headers = rows[0].map(
+    h => h.trim()
+  );
+
+
+  return rows
+    .slice(1)
+    .filter(
+      row => row.some(
+        value => value.trim() !== ''
+      )
+    )
+    .map(row => {
+
+      const obj = {};
+
+      headers.forEach(
+        (header, index) => {
+
+          obj[header] =
+            (row[index] || '').trim();
+
+        }
+      );
+
+      return obj;
+    });
+}
+
+
+/* =========================================================
+   LOAD RESEARCHES
+   ========================================================= */
+
+async function loadResearches() {
+
+  const response =
+    await fetch(CONFIG.RESEARCH_CSV_URL);
+
+  if (!response.ok) {
+    throw new Error(
+      'Failed to load Researchs'
+    );
+  }
+
+
+  const csv =
+    await response.text();
+
+  const allResearches =
+    parseCSV(csv);
+
+
+  researches =
+    allResearches.filter(
+      research =>
+        research[
+          CONFIG.RES_COLS.status
+        ] === CONFIG.ACTIVE_RESEARCH_STATUS
+    );
+
+
+  const select =
+    document.getElementById(
+      'researchSelect'
+    );
+
+
+  select.innerHTML = '';
+
+
+  const freeOption =
+    document.createElement('option');
+
+  freeOption.value = '';
+
+  freeOption.textContent =
+    CONFIG.FREE_MEASUREMENT_LABEL;
+
+  select.appendChild(
+    freeOption
+  );
+
+
+  researches.forEach(
+    research => {
+
+      const option =
+        document.createElement('option');
+
+      option.value =
+        research[
+          CONFIG.RES_COLS.id
+        ];
+
+      option.textContent =
+        research[
+          CONFIG.RES_COLS.name
+        ];
+
+
+      select.appendChild(
+        option
+      );
+    }
+  );
+
+
+  select.addEventListener(
+    'change',
+    handleResearchChange
+  );
+}
+
+
+/* =========================================================
+   RESEARCH CHANGE
+   ========================================================= */
+
+function handleResearchChange(event) {
+
+  const id =
+    event.target.value;
+
+
+  if (!id) {
+
+    selectedResearch = {
+
+      id: '',
+
+      name:
+        CONFIG.FREE_MEASUREMENT_LABEL
+    };
+
+
+    document.getElementById(
+      'researchInfo'
+    ).innerHTML =
+      `<div class="info">
+        سيتم تسجيل القياس بدون ربط ببحث.
+      </div>`;
+
+    return;
+  }
+
+
+  selectedResearch =
+    researches.find(
+      research =>
+        research[
+          CONFIG.RES_COLS.id
+        ] === id
+    );
+
+
+  if (!selectedResearch) {
+    return;
+  }
+
+
+  document.getElementById(
+    'researchInfo'
+  ).innerHTML =
+    `<div class="success-box">
+      <strong>Research ID:</strong>
+      ${escapeHTML(
+        selectedResearch[
+          CONFIG.RES_COLS.id
+        ]
+      )}
+    </div>`;
+}
+
+
+/* =========================================================
+   LOAD LOCATIONS
+   ========================================================= */
+
+async function loadLocations() {
+
+  const response =
+    await fetch(CONFIG.LOCATIONS_CSV_URL);
+
+  if (!response.ok) {
+    throw new Error(
+      'Failed to load locations'
+    );
+  }
+
+
+  const csv =
+    await response.text();
+
+
+  const allLocations =
+    parseCSV(csv);
+
+
+  locations =
+    allLocations.filter(
+      location =>
+        isVisibleLocation(location)
+    );
+
+
+  renderLocations();
+}
+
+
+/* =========================================================
+   LOCATION VISIBILITY
+   ========================================================= */
+
+function isVisibleLocation(location) {
+
+  const value =
+    String(
+      location[
+        CONFIG.LOC_COLS.visible
+      ] || ''
+    )
+      .trim()
+      .toLowerCase();
+
+
+  return CONFIG.VISIBLE_VALUES
+    .includes(value);
+}
+
+
+/* =========================================================
+   RENDER LOCATIONS
+   ========================================================= */
+
+function renderLocations() {
+
+  const select =
+    document.getElementById(
+      'savedLocationSelect'
+    );
+
+
+  select.innerHTML =
+    '<option value="">اختر موقعًا محفوظًا</option>';
+
+
+  locations.forEach(
+    location => {
+
+      const option =
+        document.createElement('option');
+
+
+      option.value =
+        location[
+          CONFIG.LOC_COLS.id
+        ];
+
+
+      option.textContent =
+        location[
+          CONFIG.LOC_COLS.name
+        ];
+
+
+      select.appendChild(
+        option
+      );
+    }
+  );
+
+
+  select.addEventListener(
+    'change',
+    handleSavedLocationChange
+  );
+}
+
+
+/* =========================================================
+   SAVED LOCATION CHANGE
+   ========================================================= */
+
+function handleSavedLocationChange(event) {
+
+  const id =
+    event.target.value;
+
+
+  if (!id) {
+
+    selectedLocation = null;
+
+    clearLocationInfo();
+
+    return;
+  }
+
+
+  selectedLocation =
+    locations.find(
+      location =>
+        location[
+          CONFIG.LOC_COLS.id
+        ] === id
+    );
+
+
+  if (!selectedLocation) {
+    return;
+  }
+
+
+  currentGPS = null;
+
+  currentMapsLocation = null;
+
+
+  displaySelectedLocation(
+    selectedLocation
+  );
+}
+
+
+/* =========================================================
+   DISPLAY LOCATION
+   ========================================================= */
+
+function displaySelectedLocation(location) {
+
+  const name =
+    location[
+      CONFIG.LOC_COLS.name
+    ] || '';
+
+
+  const id =
+    location[
+      CONFIG.LOC_COLS.id
+    ] || '';
+
+
+  const lng =
+    location[
+      CONFIG.LOC_COLS.lng
+    ] || '';
+
+
+  const lat =
+    location[
+      CONFIG.LOC_COLS.lat
+    ] || '';
+
+
+  const link =
+    location[
+      CONFIG.LOC_COLS.mapsLink
+    ] || '';
+
+
+  document.getElementById(
+    'selectedLocationInfo'
+  ).innerHTML =
+
+    `<div class="success-box">
+
+      <strong>Location:</strong>
+      ${escapeHTML(name)}
+      <br>
+
+      <strong>Location ID:</strong>
+      ${escapeHTML(id)}
+
+      ${
+        lng && lat
+        ?
+        `<div class="coordinates">
+          Longitude: ${escapeHTML(lng)}<br>
+          Latitude: ${escapeHTML(lat)}
+        </div>`
+        :
+        ''
+      }
+
+      ${
+        link
+        ?
+        `<br>
+         <a
+           href="${escapeAttribute(link)}"
+           target="_blank">
+           فتح الموقع على Google Maps
+         </a>`
+        :
+        ''
+      }
+
+    </div>`;
+}
+
+
+/* =========================================================
+   CLEAR LOCATION INFO
+   ========================================================= */
+
+function clearLocationInfo() {
+
+  document.getElementById(
+    'selectedLocationInfo'
+  ).innerHTML = '';
+}
+
+
+/* =========================================================
+   GPS
+   ========================================================= */
+
+function getCurrentGPS() {
+
+  const status =
+    document.getElementById(
+      'gpsStatus'
+    );
+
+
+  if (!navigator.geolocation) {
+
+    showMessage(
+      'gpsStatus',
+      'المتصفح لا يدعم GPS.',
+      'error'
+    );
+
+    return;
+  }
+
+
+  status.innerHTML =
+    `<div class="info">
+      جاري تحديد الموقع...
+    </div>`;
+
+
+  navigator.geolocation.getCurrentPosition(
+
+    position => {
+
+      const latitude =
+        position.coords.latitude;
+
+      const longitude =
+        position.coords.longitude;
+
+      const accuracy =
+        position.coords.accuracy;
+
+
+      currentGPS = {
+
+        lat: latitude,
+
+        lng: longitude,
+
+        accuracy: accuracy
+      };
+
+
+      currentMapsLocation = null;
+
+      selectedLocation = null;
+
+
+      document.getElementById(
+        'savedLocationSelect'
+      ).value = '';
+
+
+      document.getElementById(
+        'gpsLong'
+      ).textContent =
+        longitude.toFixed(8);
+
+
+      document.getElementById(
+        'gpsLat'
+      ).textContent =
+        latitude.toFixed(8);
+
+
+      document.getElementById(
+        'gpsAccuracy'
+      ).textContent =
+        accuracy.toFixed(1);
+
+
+      document.getElementById(
+        'gpsCoordinates'
+      ).classList.remove(
+        'hidden'
+      );
+
+
+      if (
+        accuracy >
+        CONFIG.GPS_ACCURACY_WARN
+      ) {
+
+        showMessage(
+          'gpsStatus',
+          `تم تحديد الموقع، لكن دقة GPS الحالية حوالي ${accuracy.toFixed(1)} متر.`,
+          'warning'
+        );
+
+      } else {
+
+        showMessage(
+          'gpsStatus',
+          'تم تحديد الموقع بنجاح.',
+          'success'
+        );
+      }
+
+
+      displayTemporaryLocation(
+        longitude,
+        latitude
+      );
+    },
+
+
+    error => {
+
+      let message =
+        'تعذر تحديد الموقع.';
+
+
+      if (
+        error.code ===
+        error.PERMISSION_DENIED
+      ) {
+
+        message =
+          'تم رفض صلاحية الموقع.';
+      }
+
+
+      if (
+        error.code ===
+        error.POSITION_UNAVAILABLE
+      ) {
+
+        message =
+          'الموقع غير متاح حاليًا.';
+      }
+
+
+      if (
+        error.code ===
+        error.TIMEOUT
+      ) {
+
+        message =
+          'انتهت مهلة تحديد الموقع.';
+      }
+
+
+      showMessage(
+        'gpsStatus',
+        message,
+        'error'
+      );
+    },
+
+
+    {
+
+      enableHighAccuracy: true,
+
+      timeout:
+        CONFIG.GPS_TIMEOUT_MS,
+
+      maximumAge:
+        CONFIG.GPS_MAX_AGE_MS
+    }
+  );
+}
+
+
+/* =========================================================
+   MAPS LINK
+   ========================================================= */
+
+function useMapsLink() {
+
+  const input =
+    document.getElementById(
+      'mapsLinkInput'
+    );
+
+
+  const link =
+    input.value.trim();
+
+
+  if (!link) {
+
+    showMessage(
+      'mapsStatus',
+      'أدخل رابط Google Maps أولاً.',
+      'warning'
+    );
+
+    return;
+  }
+
+
+  const coordinates =
+    extractCoordinatesFromMapsURL(
+      link
+    );
+
+
+  if (!coordinates) {
+
+    showMessage(
+      'mapsStatus',
+      'لم أستطع استخراج الإحداثيات من الرابط.',
+      'error'
+    );
+
+    return;
+  }
+
+
+  currentMapsLocation = {
+
+    lat:
+      coordinates.lat,
+
+    lng:
+      coordinates.lng,
+
+    link:
+      link
+  };
+
+
+  currentGPS = null;
+
+  selectedLocation = null;
+
+
+  document.getElementById(
+    'savedLocationSelect'
+  ).value = '';
+
+
+  displayTemporaryLocation(
+    coordinates.lng,
+    coordinates.lat,
+    link
+  );
+
+
+  showMessage(
+    'mapsStatus',
+    'تم استخراج الموقع من الرابط.',
+    'success'
+  );
+}
+
+
+/* =========================================================
+   EXTRACT COORDINATES
+   ========================================================= */
+
+function extractCoordinatesFromMapsURL(url) {
+
+  let match;
+
+
+  /* Pattern:
+     @lat,lng
+  */
+
+  match =
+    url.match(
+      /@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/
+    );
+
+
+  if (match) {
+
+    return {
+
+      lat:
+        parseFloat(match[1]),
+
+      lng:
+        parseFloat(match[2])
+    };
+  }
+
+
+  /* Pattern:
+     ?q=lat,lng
+  */
+
+  match =
+    url.match(
+      /[?&]q=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/
+    );
+
+
+  if (match) {
+
+    return {
+
+      lat:
+        parseFloat(match[1]),
+
+      lng:
+        parseFloat(match[2])
+    };
+  }
+
+
+  /* Pattern:
+     /search/lat,lng
+  */
+
+  match =
+    url.match(
+      /\/(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)(?:[/?]|$)/
+    );
+
+
+  if (match) {
+
+    return {
+
+      lat:
+        parseFloat(match[1]),
+
+      lng:
+        parseFloat(match[2])
+    };
+  }
+
+
+  return null;
+}
+
+
+/* =========================================================
+   TEMPORARY LOCATION DISPLAY
+   ========================================================= */
+
+function displayTemporaryLocation(
+  lng,
+  lat,
+  link = ''
+) {
+
+  document.getElementById(
+    'selectedLocationInfo'
+  ).innerHTML =
+
+    `<div class="success-box">
+
+      <strong>موقع جديد / غير محفوظ</strong>
+      <br><br>
+
+      Longitude:
+      ${escapeHTML(
+        String(lng)
+      )}
+
+      <br>
+
+      Latitude:
+      ${escapeHTML(
+        String(lat)
+      )}
+
+      ${
+        link
+        ?
+        `<br><br>
+         <a
+           href="${escapeAttribute(link)}"
+           target="_blank">
+           فتح الموقع على Google Maps
+         </a>`
+        :
+        ''
+      }
+
+    </div>`;
+}
+
+
+/* =========================================================
+   SAVE NEW LOCATION
+   ========================================================= */
+
+async function saveCurrentLocation() {
+
+  const nameInput =
+    document.getElementById(
+      'locationNameInput'
+    );
+
+
+  const name =
+    nameInput.value.trim();
+
+
+  if (!name) {
+
+    showMessage(
+      'saveLocationStatus',
+      'اكتب اسم الموقع أولاً.',
+      'warning'
+    );
+
+    return;
+  }
+
+
+  let lng = null;
+
+  let lat = null;
+
+  let link = '';
+
+
+  if (currentGPS) {
+
+    lng =
+      currentGPS.lng;
+
+    lat =
+      currentGPS.lat;
+
+  } else if (currentMapsLocation) {
+
+    lng =
+      currentMapsLocation.lng;
+
+    lat =
+      currentMapsLocation.lat;
+
+    link =
+      currentMapsLocation.link;
+
+  } else {
+
+    showMessage(
+      'saveLocationStatus',
+      'حدد الموقع باستخدام GPS أو Google Maps أولاً.',
+      'warning'
+    );
+
+    return;
+  }
+
+
+  /* If there is no Maps link,
+     create one from coordinates.
+  */
+
+  if (!link) {
+
+    link =
+      createGoogleMapsURL(
+        lat,
+        lng
+      );
+  }
+
+
+  /* ---------- Frontend duplicate check ---------- */
+
+  const duplicate =
+    findDuplicateLocation(
+      lat,
+      lng
+    );
+
+
+  if (duplicate) {
+
+    selectedLocation =
+      duplicate;
+
+
+    showMessage(
+      'saveLocationStatus',
+      `الموقع موجود بالفعل: ${duplicate[CONFIG.LOC_COLS.name]} (${duplicate[CONFIG.LOC_COLS.id]})`,
+      'warning'
+    );
+
+
+    displaySelectedLocation(
+      duplicate
+    );
+
+
+    return;
+  }
+
+
+  showMessage(
+    'saveLocationStatus',
+    'جاري حفظ الموقع...',
+    'info'
+  );
+
+
+  const payload = {
+
+    action:
+      'saveLocation',
+
+    locationName:
+      name,
+
+    lat:
+      lat,
+
+    lng:
+      lng,
+
+    locationLink:
+      link
+  };
+
+
+  try {
+
+    const response =
+      await fetch(
+        CONFIG.LOCATION_WRITE_API_URL,
+        {
+
+          method: 'POST',
+
+          body:
+            JSON.stringify(payload)
+        }
+      );
+
+
+    const result =
+      await response.json();
+
+
+    if (
+      result.status ===
+      'success'
+    ) {
+
+      if (result.duplicate) {
+
+        showMessage(
+          'saveLocationStatus',
+          `الموقع موجود بالفعل: ${result.locationId}`,
+          'warning'
+        );
+
+      } else {
+
+        showMessage(
+          'saveLocationStatus',
+          `تم حفظ الموقع بنجاح. Location ID: ${result.locationId}`,
+          'success'
+        );
+      }
+
+
+      const newLocation = {
+
+        Location_ID:
+          result.locationId,
+
+        Location_Name:
+          name,
+
+        D: '',
+
+        Mat: '',
+
+        Long_X:
+          String(lng),
+
+        Lat_Y:
+          String(lat),
+
+        Location_Link:
+          link,
+
+        Pipe_ID: '',
+
+        Visible:
+          'TRUE'
+      };
+
+
+      /* Add locally */
+
+      locations.push(
+        newLocation
+      );
+
+
+      renderLocations();
+
+
+      document.getElementById(
+        'savedLocationSelect'
+      ).value =
+        result.locationId;
+
+
+      selectedLocation =
+        newLocation;
+
+
+      currentGPS = null;
+
+      currentMapsLocation = null;
+
+
+      displaySelectedLocation(
+        newLocation
+      );
+
+    } else {
+
+      throw new Error(
+        result.message ||
+        'Unknown server error'
+      );
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    showMessage(
+      'saveLocationStatus',
+      `فشل حفظ الموقع: ${error.message}`,
+      'error'
+    );
+  }
+}
+
+
+/* =========================================================
+   FIND DUPLICATE LOCATION
+   ========================================================= */
+
+function findDuplicateLocation(
+  lat,
+  lng
+) {
+
+  for (
+    const location of locations
+  ) {
+
+    const locationLat =
+      parseFloat(
+        location[
+          CONFIG.LOC_COLS.lat
+        ]
+      );
+
+
+    const locationLng =
+      parseFloat(
+        location[
+          CONFIG.LOC_COLS.lng
+        ]
+      );
+
+
+    if (
+      !Number.isFinite(
+        locationLat
+      ) ||
+      !Number.isFinite(
+        locationLng
+      )
+    ) {
+
+      continue;
+    }
+
+
+    const distance =
+      calculateDistanceMeters(
+        lat,
+        lng,
+        locationLat,
+        locationLng
+      );
+
+
+    if (
+      distance <=
+      CONFIG.DUPLICATE_TOLERANCE_METERS
+    ) {
+
+      return location;
+    }
+  }
+
+
+  return null;
+}
+
+
+/* =========================================================
+   HAVERSINE DISTANCE
+   ========================================================= */
+
+function calculateDistanceMeters(
+  lat1,
+  lon1,
+  lat2,
+  lon2
+) {
+
+  const R =
+    6371000;
+
+
+  const toRad =
+    degrees =>
+      degrees *
+      Math.PI /
+      180;
+
+
+  const dLat =
+    toRad(
+      lat2 - lat1
+    );
+
+
+  const dLon =
+    toRad(
+      lon2 - lon1
+    );
+
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(
+      toRad(lat1)
+    ) *
+    Math.cos(
+      toRad(lat2)
+    ) *
+    Math.sin(dLon / 2) ** 2;
+
+
+  const c =
+    2 *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1 - a)
+    );
+
+
+  return R * c;
+}
+
+
+/* =========================================================
+   CREATE GOOGLE MAPS URL
+   ========================================================= */
+
+function createGoogleMapsURL(
+  lat,
+  lng
+) {
+
+  return `https://www.google.com/maps?q=${encodeURIComponent(lat + ',' + lng)}`;
+}
+
+
+/* =========================================================
+   OPEN PRESSURE FORM
+   ========================================================= */
+
+function openPressureForm() {
+
+  if (
+    !validateMeasurementData()
+  ) {
+    return;
+  }
+
+
+  showFormConfirmation(
+    'pressure',
+
+    selectedResearch
+      ? selectedResearch[
+          CONFIG.RES_COLS.id
+        ]
+      : '',
+
+    selectedResearch
+      ? selectedResearch[
+          CONFIG.RES_COLS.name
+        ]
+      : CONFIG.FREE_MEASUREMENT_LABEL,
+
+    selectedLocation[
+      CONFIG.LOC_COLS.id
+    ],
+
+    selectedLocation[
+      CONFIG.LOC_COLS.name
+    ],
+
+    selectedLocation[
+      CONFIG.LOC_COLS.mapsLink
+    ],
+
+    selectedLocation[
+      CONFIG.LOC_COLS.lng
+    ],
+
+    selectedLocation[
+      CONFIG.LOC_COLS.lat
+    ]
+  );
+}
+
+
+/* =========================================================
+   OPEN FLOW FORM
+   ========================================================= */
+
+function openFlowForm() {
+
+  if (
+    !validateMeasurementData()
+  ) {
+    return;
+  }
+
+
+  showFormConfirmation(
+    'flow',
+
+    selectedResearch
+      ? selectedResearch[
+          CONFIG.RES_COLS.id
+        ]
+      : '',
+
+    selectedResearch
+      ? selectedResearch[
+          CONFIG.RES_COLS.name
+        ]
+      : CONFIG.FREE_MEASUREMENT_LABEL,
+
+    selectedLocation[
+      CONFIG.LOC_COLS.id
+    ],
+
+    selectedLocation[
+      CONFIG.LOC_COLS.name
+    ],
+
+    selectedLocation[
+      CONFIG.LOC_COLS.mapsLink
+    ],
+
+    selectedLocation[
+      CONFIG.LOC_COLS.lng
+    ],
+
+    selectedLocation[
+      CONFIG.LOC_COLS.lat
+    ]
+  );
+}
+
+
+/* =========================================================
+   VALIDATE MEASUREMENT
+   ========================================================= */
+
+function validateMeasurementData() {
+
+  if (!selectedResearch) {
+
+    selectedResearch = {
+
+      id: '',
+
+      name:
+        CONFIG.FREE_MEASUREMENT_LABEL
+    };
+  }
+
+
+  if (!selectedLocation) {
+
+    /* If GPS or Maps is available
+       but not saved, create a temporary
+       location object for the form.
+    */
+
+    if (currentGPS) {
+
+      selectedLocation = {
+
+        Location_ID: '',
+
+        Location_Name:
+          document.getElementById(
+            'locationNameInput'
+          ).value.trim() ||
+          'موقع GPS',
+
+        Long_X:
+          String(
+            currentGPS.lng
+          ),
+
+        Lat_Y:
+          String(
+            currentGPS.lat
+          ),
+
+        Location_Link:
+          createGoogleMapsURL(
+            currentGPS.lat,
+            currentGPS.lng
+          )
+      };
+
+    } else if (
+      currentMapsLocation
+    ) {
+
+      selectedLocation = {
+
+        Location_ID: '',
+
+        Location_Name:
+          document.getElementById(
+            'locationNameInput'
+          ).value.trim() ||
+          'موقع Google Maps',
+
+        Long_X:
+          String(
+            currentMapsLocation.lng
+          ),
+
+        Lat_Y:
+          String(
+            currentMapsLocation.lat
+          ),
+
+        Location_Link:
+          currentMapsLocation.link
+      };
+
+    } else {
+
+      showMessage(
+        'selectedLocationInfo',
+        'يجب اختيار موقع محفوظ أو تحديد موقع GPS أو Google Maps.',
+        'warning'
+      );
+
+      return false;
+    }
+  }
+
+
+  return true;
+}
+
+
+/* =========================================================
+   SHOW FORM CONFIRMATION
+   ========================================================= */
+
+function showFormConfirmation(
+  type,
+  researchId,
+  researchName,
+  locationId,
+  locationName,
+  locationLink,
+  longX,
+  latY
+) {
+
+  pendingFormUrl =
+    buildPrefilledFormUrl(
+      type,
+      researchId,
+      researchName,
+      locationId,
+      locationName,
+      locationLink,
+      longX,
+      latY
+    );
+
+
+  const typeName =
+    type === 'pressure'
+      ? 'قياس ضغط'
+      : 'قياس تصرف';
+
+
+  document.getElementById(
+    'confirmationContent'
+  ).innerHTML =
+
+    `<div class="info">
+
+      <strong>نوع القياس:</strong>
+      ${typeName}
+
+    </div>
+
+    <p>
+      <strong>البحث:</strong>
+      ${escapeHTML(researchName)}
+    </p>
+
+    <p>
+      <strong>Research ID:</strong>
+      ${escapeHTML(researchId || 'بدون بحث')}
+    </p>
+
+    <p>
+      <strong>الموقع:</strong>
+      ${escapeHTML(locationName)}
+    </p>
+
+    <p>
+      <strong>Location ID:</strong>
+      ${escapeHTML(locationId || 'غير محفوظ')}
+    </p>
+
+    <p>
+      <strong>Longitude:</strong>
+      ${escapeHTML(String(longX))}
+    </p>
+
+    <p>
+      <strong>Latitude:</strong>
+      ${escapeHTML(String(latY))}
+    </p>`;
+
+
+  document.getElementById(
+    'confirmationModal'
+  ).classList.remove(
+    'hidden'
+  );
+}
+
+
+/* =========================================================
+   BUILD PREFILLED FORM URL
+   ========================================================= */
+
+function buildPrefilledFormUrl(
+  type,
+  researchId,
+  researchName,
+  locationId,
+  locationName,
+  locationLink,
+  longX,
+  latY
+) {
+
+  let baseUrl;
+
+  let fields;
+
+
+  if (type === 'pressure') {
+
+    baseUrl =
+      CONFIG.PRESSURE_FORM_URL;
+
+    fields =
+      CONFIG.PRESSURE_FIELDS;
+
+  } else {
+
+    baseUrl =
+      CONFIG.FLOW_FORM_URL;
+
+    fields =
+      CONFIG.FLOW_FIELDS;
+  }
+
+
+  const params =
+    new URLSearchParams();
+
+
+  params.set(
+    fields.researchId,
+    researchId || ''
+  );
+
+
+  params.set(
+    fields.researchName,
+    researchName || ''
+  );
+
+
+  params.set(
+    fields.locationId,
+    locationId || ''
+  );
+
+
+  params.set(
+    fields.locationName,
+    locationName || ''
+  );
+
+
+  params.set(
+    fields.locationLink,
+    locationLink || ''
+  );
+
+
+  params.set(
+    fields.longX,
+    longX || ''
+  );
+
+
+  params.set(
+    fields.latY,
+    latY || ''
+  );
+
+
+  return (
+    baseUrl +
+    '?usp=pp_url&' +
+    params.toString()
+  );
+}
+
+
+/* =========================================================
+   CONFIRM OPEN FORM
+   ========================================================= */
+
+function confirmOpenForm() {
+
+  if (!pendingFormUrl) {
+    return;
+  }
+
+
+  window.open(
+    pendingFormUrl,
+    '_blank'
+  );
+
+
+  closeConfirmation();
+}
+
+
+/* =========================================================
+   CLOSE MODAL
+   ========================================================= */
+
+function closeConfirmation() {
+
+  document.getElementById(
+    'confirmationModal'
+  ).classList.add(
+    'hidden'
+  );
+
+
+  pendingFormUrl = null;
+}
+
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+function showMessage(
+  elementId,
+  message,
+  type
+) {
+
+  const element =
+    document.getElementById(
+      elementId
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  let className =
+    'info';
+
+
+  if (type === 'success') {
+    className =
+      'success-box';
+  }
+
+
+  if (type === 'warning') {
+    className =
+      'warning';
+  }
+
+
+  if (type === 'error') {
+    className =
+      'error';
+  }
+
+
+  element.innerHTML =
+    `<div class="${className}">
+      ${escapeHTML(message)}
+    </div>`;
+}
+
+
+/* =========================================================
+   HTML ESCAPE
+   ========================================================= */
+
+function escapeHTML(value) {
+
+  return String(value)
+    .replace(
+      /&/g,
+      '&amp;'
+    )
+    .replace(
+      /</g,
+      '&lt;'
+    )
+    .replace(
+      />/g,
+      '&gt;'
+    )
+    .replace(
+      /"/g,
+      '&quot;'
+    )
+    .replace(
+      /'/g,
+      '&#039;'
+    );
+}
+
+
+/* =========================================================
+   ATTRIBUTE ESCAPE
+   ========================================================= */
+
+function escapeAttribute(value) {
+
+  return escapeHTML(value);
+}
+
+</script>
+
+</body>
+</html>
