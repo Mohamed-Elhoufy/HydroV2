@@ -151,34 +151,16 @@ function populateAllResearchDropdowns() {
 function onResearchChange(mode) {
 
   /*
-    Saved Locations:
-    When a Research is selected, show only the Locations
-    belonging to that Research.
+    Research does NOT filter Saved Locations.
+    All visible Locations remain available.
 
-    GPS / Link:
-    Research is used when saving the Location and
-    when opening the measurement Forms.
+    The selected Research is used only when
+    opening the Pressure / Flow measurement Forms.
   */
 
   if (mode === 'saved') {
 
-    var research = getSelectedResearch('saved');
-
-    if (!research.id) {
-
-      _filteredLocs = _locations.slice();
-
-    } else {
-
-      var c = CONFIG.LOC_COLS;
-
-      _filteredLocs = _locations.filter(function(loc) {
-
-        return String(loc[c.researchId] || '').trim() ===
-               String(research.id).trim();
-
-      });
-    }
+    _filteredLocs = _locations.slice();
 
     displayLocations();
   }
@@ -283,27 +265,6 @@ function filterVisibleLocations(rows) {
         .trim();
 
     return CONFIG.VISIBLE_VALUES.indexOf(val) !== -1;
-  });
-}
-
-
-/* ================================================================
-   FILTER LOCATIONS BY RESEARCH
-   ================================================================ */
-
-function filterLocationsByResearch(researchId) {
-
-  var c = CONFIG.LOC_COLS;
-
-  if (!researchId) {
-    return _locations.slice();
-  }
-
-  return _locations.filter(function(loc) {
-
-    return String(loc[c.researchId] || '').trim() ===
-           String(researchId).trim();
-
   });
 }
 
