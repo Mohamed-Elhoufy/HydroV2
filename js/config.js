@@ -9,7 +9,7 @@ var CONFIG = {
 
   /* Apps Script Web App */
   LOCATION_WRITE_API_URL:
-    'https://script.google.com/macros/s/AKfycbxl1b6wN32QDMErrAURpU56Ddg16Tp4-NebbLpgObvc975ib6OKq6BeBHlI8C4jYLDwrA/exec',
+    'https://script.google.com/macros/s/AKfycbzYclef94AOtiJWUqtunOzwCwz7OMKX7W4kFx0tlvjP7GkoMH4fjTgjbVs-kk393MMASQ/exec',
 
   /* Pressure Google Form */
   PRESSURE_FORM_URL:
